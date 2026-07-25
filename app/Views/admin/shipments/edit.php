@@ -1,4 +1,4 @@
-﻿<style>
+<style>
     .shipment-edit-wrapper {
         max-width: 1100px;
         margin: 0 auto;
@@ -458,8 +458,8 @@
                 <div class="form-row cols-3">
                     <div class="form-group">
                         <label for="origin_branch_id">Origin Branch</label>
-                        <select name="origin_branch_id" id="origin_branch_id">
-                            <option value="">-- Select --</option>
+                        <select name="origin_branch_id" id="origin_branch_id" class="select2">
+                            <option value="">Search or select branch...</option>
                             <?php foreach ($branches as $b): ?>
                                 <option value="<?= $b->id ?>" <?= $shipment->origin_branch_id == $b->id ? 'selected' : '' ?>><?= htmlspecialchars($b->name) ?></option>
                             <?php endforeach; ?>
