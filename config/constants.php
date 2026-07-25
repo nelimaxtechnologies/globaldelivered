@@ -16,7 +16,21 @@ defined('LOGS_PATH') or define('LOGS_PATH', STORAGE_PATH . '/logs');
 defined('CACHE_PATH') or define('CACHE_PATH', STORAGE_PATH . '/cache');
 
 // URL constants
-defined('BASE_URL') or define('BASE_URL', rtrim(env('APP_URL', 'http://localhost/globaldelivered'), '/'));
+// Auto-detect BASE_URL from current request if APP_URL not set in .env
+if (!defined('BASE_URL')) {
+    $envUrl = env('APP_URL', '');
+    if (!empty($envUrl)) {
+        define('BASE_URL', rtrim($envUrl, '/'));
+    } else {
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || ($_SERVER['SERVER_PORT'] ?? 0) == 443 ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
+        // Detect base path (e.g. /globaldelivered on localhost, / on production root)
+        $scriptDir = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php'), '/');
+        // If index.php is at root, base path is empty; otherwise it's the directory
+        $basePath = ($scriptDir === '/' || $scriptDir === '\\') ? '' : $scriptDir;
+        define('BASE_URL', $scheme . '://' . $host . $basePath);
+    }
+}
 defined('ASSETS_URL') or define('ASSETS_URL', BASE_URL . '/public/assets');
 defined('ADMIN_URL') or define('ADMIN_URL', BASE_URL . '/public/admin');
 
