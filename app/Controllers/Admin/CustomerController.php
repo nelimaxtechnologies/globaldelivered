@@ -161,15 +161,33 @@ class CustomerController extends Controller
     public function edit(int $id): void
     {
         $customer = $this->db->fetch("SELECT * FROM customers WHERE id = ? AND deleted_at IS NULL", [$id]);
-        
+
         if (!$customer) {
             flash('error', 'Customer not found.');
             $this->redirect('/admin/customers');
         }
-        
+
+        $stats = $this->db->fetch(
+            "SELECT COUNT(*) as total_shipments,
+                    COALESCE(SUM(grand_total), 0) as total_spent,
+                    SUM(CASE WHEN status = 'delivered' THEN 1 ELSE 0 END) as delivered,
+                    MAX(created_at) as last_shipment_date
+             FROM shipments WHERE customer_id = ? AND deleted_at IS NULL",
+            [$id]
+        );
+
+        $recentShipments = $this->db->fetchAll(
+            "SELECT id, tracking_number, status, grand_total, created_at
+             FROM shipments WHERE customer_id = ? AND deleted_at IS NULL
+             ORDER BY created_at DESC LIMIT 5",
+            [$id]
+        );
+
         $this->adminView('customers/edit', [
             'pageTitle' => "Edit Customer",
             'customer' => $customer,
+            'stats' => $stats,
+            'recentShipments' => $recentShipments,
         ]);
     }
 
