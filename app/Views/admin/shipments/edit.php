@@ -312,20 +312,25 @@
                 </div>
                 <div class="form-row cols-4">
                     <div class="form-group">
+                        <label for="sender_country">Sender Country</label>
+                        <select name="sender_country" id="sender_country" class="sender-country-select" data-target="sender" data-current="<?= htmlspecialchars($shipment->sender_country ?? '') ?>">
+                            <option value="">Select Country</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label for="sender_city">Sender City</label>
-                        <input type="text" name="sender_city" id="sender_city" value="<?= htmlspecialchars($shipment->sender_city ?? '') ?>">
+                        <select name="sender_city" id="sender_city" class="sender-city-select" data-target="sender" data-current="<?= htmlspecialchars($shipment->sender_city ?? '') ?>" disabled>
+                            <option value="">Select country first</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="sender_state">Sender State</label>
                         <input type="text" name="sender_state" id="sender_state" value="<?= htmlspecialchars($shipment->sender_state ?? '') ?>">
                     </div>
                     <div class="form-group">
-                        <label for="sender_country">Sender Country</label>
-                        <input type="text" name="sender_country" id="sender_country" value="<?= htmlspecialchars($shipment->sender_country ?? '') ?>">
-                    </div>
-                    <div class="form-group">
                         <label for="sender_postal_code">Sender Postal Code</label>
-                        <input type="text" name="sender_postal_code" id="sender_postal_code" value="<?= htmlspecialchars($shipment->sender_postal_code ?? '') ?>">
+                        <input type="text" name="sender_postal_code" id="sender_postal_code" value="<?= htmlspecialchars($shipment->sender_postal_code ?? '') ?>" class="postal-code-input" data-target="sender">
+                        <small class="text-muted" style="font-size:0.7rem;display:block;">Auto-detect from zip</small>
                     </div>
                 </div>
             </div>
@@ -354,20 +359,25 @@
                 </div>
                 <div class="form-row cols-4">
                     <div class="form-group">
+                        <label for="recipient_country">Country</label>
+                        <select name="recipient_country" id="recipient_country" class="recipient-country-select" data-target="recipient" data-current="<?= htmlspecialchars($shipment->recipient_country ?? '') ?>">
+                            <option value="">Select Country</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label for="recipient_city">City</label>
-                        <input type="text" name="recipient_city" id="recipient_city" value="<?= htmlspecialchars($shipment->recipient_city) ?>">
+                        <select name="recipient_city" id="recipient_city" class="recipient-city-select" data-target="recipient" data-current="<?= htmlspecialchars($shipment->recipient_city ?? '') ?>" disabled>
+                            <option value="">Select country first</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="recipient_state">State</label>
                         <input type="text" name="recipient_state" id="recipient_state" value="<?= htmlspecialchars($shipment->recipient_state) ?>">
                     </div>
                     <div class="form-group">
-                        <label for="recipient_country">Country</label>
-                        <input type="text" name="recipient_country" id="recipient_country" value="<?= htmlspecialchars($shipment->recipient_country) ?>">
-                    </div>
-                    <div class="form-group">
                         <label for="recipient_postal_code">Postal Code</label>
-                        <input type="text" name="recipient_postal_code" id="recipient_postal_code" value="<?= htmlspecialchars($shipment->recipient_postal_code) ?>">
+                        <input type="text" name="recipient_postal_code" id="recipient_postal_code" value="<?= htmlspecialchars($shipment->recipient_postal_code) ?>" class="postal-code-input" data-target="recipient">
+                        <small class="text-muted" style="font-size:0.7rem;display:block;">Auto-detect from zip</small>
                     </div>
                 </div>
             </div>
@@ -509,3 +519,144 @@
         </div>
     </form>
 </div>
+
+<script>
+$(document).ready(function() {
+    var BASE = '<?= BASE_URL ?>';
+
+    // Load countries into both dropdowns
+    $.getJSON(BASE + '/admin/api/countries', function(resp) {
+        if (resp.success && resp.data) {
+            var opts = '<option value="">Select Country</option>';
+            resp.data.forEach(function(c) {
+                opts += '<option value="' + c.name + '">' + c.name + '</option>';
+            });
+            $('.sender-country-select, .recipient-country-select').each(function() {
+                var $sel = $(opts);
+                $(this).html(opts);
+                // Pre-select current value
+                var current = $(this).data('current');
+                if (current) {
+                    $(this).val(current);
+                    // Trigger city load
+                    $(this).trigger('change');
+                }
+            });
+        }
+    });
+
+    // On country change → load cities
+    $(document).on('change', '.sender-country-select, .recipient-country-select', function() {
+        var target = $(this).data('target');
+        var country = $(this).val();
+        var citySelect = $('.' + target + '-city-select');
+        var currentCity = citySelect.data('current');
+
+        if (!country) {
+            citySelect.html('<option value="">Select country first</option>').prop('disabled', true);
+            return;
+        }
+
+        citySelect.html('<option value="">Loading cities...</option>').prop('disabled', true);
+
+        $.getJSON(BASE + '/admin/api/cities?country=' + encodeURIComponent(country), function(resp) {
+            if (resp.success && resp.cities.length > 0) {
+                var opts = '<option value="">Select City</option>';
+                resp.cities.forEach(function(city) {
+                    var selected = (currentCity && currentCity.toLowerCase() === city.toLowerCase()) ? ' selected' : '';
+                    opts += '<option value="' + city + '"' + selected + '>' + city + '</option>';
+                });
+                opts += '<option value="__other__">Other (type manually)</option>';
+                // If current city isn't in the list, set it as "Other"
+                if (currentCity) {
+                    var found = resp.cities.some(function(c) { return c.toLowerCase() === currentCity.toLowerCase(); });
+                    if (!found) {
+                        opts += '<option value="' + currentCity + '" selected>' + currentCity + '</option>';
+                    }
+                }
+                citySelect.html(opts).prop('disabled', false);
+            } else {
+                var opts = '<option value="__other__">Type city manually</option>';
+                if (currentCity) {
+                    opts = '<option value="' + currentCity + '" selected>' + currentCity + '</option>' + opts;
+                }
+                citySelect.html(opts).prop('disabled', false);
+            }
+        }).fail(function() {
+            var opts = '<option value="__other__">Type city manually</option>';
+            if (currentCity) {
+                opts = '<option value="' + currentCity + '" selected>' + currentCity + '</option>' + opts;
+            }
+            citySelect.html(opts).prop('disabled', false);
+        });
+    });
+
+    // If "Other" selected → convert to text input
+    $(document).on('change', '.sender-city-select, .recipient-city-select', function() {
+        var target = $(this).data('target');
+        if ($(this).val() === '__other__') {
+            var name = $(this).attr('name');
+            var currentVal = '';
+            var input = $('<input type="text" name="' + name + '" id="' + name + '" value="' + currentVal + '" placeholder="Enter city name">');
+            $(this).replaceWith(input);
+        }
+    });
+
+    // --- Zip Code Auto-Detection ---
+    var geocodeTimers = {};
+    $(document).on('input', '.postal-code-input', function() {
+        var $input = $(this);
+        var target = $input.data('target');
+        var postalCode = $input.val().trim();
+
+        clearTimeout(geocodeTimers[target]);
+
+        if (postalCode.length < 3) return;
+
+        geocodeTimers[target] = setTimeout(function() {
+            var country = $('.' + target + '-country-select').val();
+            if (!country) return;
+
+            var $hint = $input.closest('.form-row').find('small.text-muted');
+            var origText = $hint.text();
+            $hint.text('Looking up...').css('color', '#1a237e');
+
+            $.getJSON(BASE + '/admin/api/geocode?postal_code=' + encodeURIComponent(postalCode) + '&country=' + encodeURIComponent(country), function(resp) {
+                if (resp.success && resp.data) {
+                    var d = resp.data;
+                    if (d.city) {
+                        var citySelect = $('.' + target + '-city-select');
+                        var found = false;
+                        citySelect.find('option').each(function() {
+                            if ($(this).val().toLowerCase() === d.city.toLowerCase()) {
+                                $(this).prop('selected', true);
+                                found = true;
+                                return false;
+                            }
+                        });
+                        if (!found && !citySelect.prop('disabled')) {
+                            citySelect.val('__other__').trigger('change');
+                            var name = citySelect.attr('name');
+                            if (!$('input[name="' + name + '"]').length) {
+                                var input = $('<input type="text" name="' + name + '" id="' + name + '" placeholder="Enter city name">');
+                                citySelect.replaceWith(input);
+                            }
+                            $('input[name="' + name + '"]').val(d.city);
+                        }
+                    }
+                    if (d.state) {
+                        $('input[name="' + target + '_state"]').val(d.state);
+                    }
+                    $hint.text('Address found!').css('color', '#2e7d32');
+                    setTimeout(function() { $hint.text(origText).css('color', ''); }, 3000);
+                } else {
+                    $hint.text('No match').css('color', '#d32f2f');
+                    setTimeout(function() { $hint.text(origText).css('color', ''); }, 3000);
+                }
+            }).fail(function() {
+                $hint.text(origText).css('color', '');
+            });
+        }, 800);
+    });
+});
+</script>

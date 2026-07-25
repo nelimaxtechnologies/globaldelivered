@@ -158,6 +158,11 @@ Router::group(['prefix' => 'admin', 'middleware' => ['AuthMiddleware']], functio
     Router::post('/api-settings/generate-key', 'Admin\\SettingsController@generateApiKey');
     Router::post('/api-settings/{id}/delete', 'Admin\\SettingsController@deleteApiKey');
 
+    // Cities API (for country→city cascade)
+    Router::get('/api/cities', 'Api\\ApiController@getCities');
+    Router::get('/api/geocode', 'Api\\ApiController@geocode');
+    Router::get('/api/countries', 'Api\\ApiController@getCountries');
+
     // Test Email
     Router::post('/settings/test-email', 'Admin\\SettingsController@testEmail');
     Router::post('/settings/process-email-queue', 'Admin\\SettingsController@processEmailQueue');

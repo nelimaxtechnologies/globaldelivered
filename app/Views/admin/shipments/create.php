@@ -562,10 +562,21 @@
                 </div>
                 <div class="cs-row cols-4">
                     <div>
+                        <label class="cs-label">Country <span class="required">*</span></label>
+                        <div class="cs-input-icon-group">
+                            <i class="bi bi-globe cs-input-icon"></i>
+                            <select name="sender_country" required class="sender-country-select" data-target="sender">
+                                <option value="">Select Country</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
                         <label class="cs-label">City <span class="required">*</span></label>
                         <div class="cs-input-icon-group">
                             <i class="bi bi-building cs-input-icon"></i>
-                            <input type="text" name="sender_city" required placeholder="City">
+                            <select name="sender_city" required class="sender-city-select" data-target="sender" disabled>
+                                <option value="">Select country first</option>
+                            </select>
                         </div>
                     </div>
                     <div>
@@ -576,18 +587,12 @@
                         </div>
                     </div>
                     <div>
-                        <label class="cs-label">Country <span class="required">*</span></label>
-                        <div class="cs-input-icon-group">
-                            <i class="bi bi-globe cs-input-icon"></i>
-                            <input type="text" name="sender_country" required placeholder="Country">
-                        </div>
-                    </div>
-                    <div>
                         <label class="cs-label">Postal Code</label>
                         <div class="cs-input-icon-group">
                             <i class="bi bi-mailbox cs-input-icon"></i>
-                            <input type="text" name="sender_postal_code" placeholder="00100">
+                            <input type="text" name="sender_postal_code" placeholder="00100" class="postal-code-input" data-target="sender">
                         </div>
+                        <small class="text-muted" style="font-size:0.7rem;margin-top:2px;display:block;">Auto-detect address from zip</small>
                     </div>
                 </div>
             </div>
@@ -639,10 +644,21 @@
                 </div>
                 <div class="cs-row cols-4">
                     <div>
+                        <label class="cs-label">Country <span class="required">*</span></label>
+                        <div class="cs-input-icon-group">
+                            <i class="bi bi-globe cs-input-icon"></i>
+                            <select name="recipient_country" required class="recipient-country-select" data-target="recipient">
+                                <option value="">Select Country</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
                         <label class="cs-label">City <span class="required">*</span></label>
                         <div class="cs-input-icon-group">
                             <i class="bi bi-building cs-input-icon"></i>
-                            <input type="text" name="recipient_city" required placeholder="City">
+                            <select name="recipient_city" required class="recipient-city-select" data-target="recipient" disabled>
+                                <option value="">Select country first</option>
+                            </select>
                         </div>
                     </div>
                     <div>
@@ -653,18 +669,12 @@
                         </div>
                     </div>
                     <div>
-                        <label class="cs-label">Country <span class="required">*</span></label>
-                        <div class="cs-input-icon-group">
-                            <i class="bi bi-globe cs-input-icon"></i>
-                            <input type="text" name="recipient_country" required placeholder="Country">
-                        </div>
-                    </div>
-                    <div>
                         <label class="cs-label">Postal Code</label>
                         <div class="cs-input-icon-group">
                             <i class="bi bi-mailbox cs-input-icon"></i>
-                            <input type="text" name="recipient_postal_code" placeholder="00100">
+                            <input type="text" name="recipient_postal_code" placeholder="00100" class="postal-code-input" data-target="recipient">
                         </div>
+                        <small class="text-muted" style="font-size:0.7rem;margin-top:2px;display:block;">Auto-detect address from zip</small>
                     </div>
                 </div>
             </div>
@@ -963,6 +973,122 @@ $(document).ready(function() {
             $('#codAmountField').removeClass('visible');
             $('#codAmountField input').val('');
         }
+    });
+
+    // --- Country/City Cascading Dropdowns ---
+    const BASE = '<?= BASE_URL ?>';
+
+    // Load countries into both dropdowns
+    $.getJSON(BASE + '/admin/api/countries', function(resp) {
+        if (resp.success && resp.data) {
+            var opts = '<option value="">Select Country</option>';
+            resp.data.forEach(function(c) {
+                opts += '<option value="' + c.name + '">' + c.name + '</option>';
+            });
+            $('.sender-country-select, .recipient-country-select').html(opts).prop('disabled', false);
+        }
+    });
+
+    // On country change → load cities
+    $(document).on('change', '.sender-country-select, .recipient-country-select', function() {
+        var target = $(this).data('target');
+        var country = $(this).val();
+        var citySelect = $('.' + target + '-city-select');
+
+        if (!country) {
+            citySelect.html('<option value="">Select country first</option>').prop('disabled', true);
+            return;
+        }
+
+        citySelect.html('<option value="">Loading cities...</option>').prop('disabled', true);
+
+        $.getJSON(BASE + '/admin/api/cities?country=' + encodeURIComponent(country), function(resp) {
+            if (resp.success && resp.cities.length > 0) {
+                var opts = '<option value="">Select City</option>';
+                resp.cities.forEach(function(city) {
+                    opts += '<option value="' + city + '">' + city + '</option>';
+                });
+                // Add "Other" option for cities not in the list
+                opts += '<option value="__other__">Other (type manually)</option>';
+                citySelect.html(opts).prop('disabled', false);
+            } else {
+                var opts = '<option value="__other__">Type city manually</option>';
+                citySelect.html(opts).prop('disabled', false);
+            }
+        }).fail(function() {
+            citySelect.html('<option value="__other__">Type city manually</option>').prop('disabled', false);
+        });
+    });
+
+    // If "Other" selected → convert to text input
+    $(document).on('change', '.sender-city-select, .recipient-city-select', function() {
+        var target = $(this).data('target');
+        if ($(this).val() === '__other__') {
+            var name = $(this).attr('name');
+            var input = $('<input type="text" class="form-control" name="' + name + '" required placeholder="Enter city name">');
+            $(this).replaceWith(input);
+        }
+    });
+
+    // --- Zip Code Auto-Detection ---
+    var geocodeTimers = {};
+    $(document).on('input', '.postal-code-input', function() {
+        var $input = $(this);
+        var target = $input.data('target');
+        var postalCode = $input.val().trim();
+
+        clearTimeout(geocodeTimers[target]);
+
+        if (postalCode.length < 3) return;
+
+        geocodeTimers[target] = setTimeout(function() {
+            var country = $('.' + target + '-country-select').val();
+            if (!country) return;
+
+            // Show loading indicator
+            var $hint = $input.closest('.cs-row').find('small.text-muted');
+            var origText = $hint.text();
+            $hint.text('Looking up address...').css('color', '#1a237e');
+
+            $.getJSON(BASE + '/admin/api/geocode?postal_code=' + encodeURIComponent(postalCode) + '&country=' + encodeURIComponent(country), function(resp) {
+                if (resp.success && resp.data) {
+                    var d = resp.data;
+                    // Auto-fill city
+                    var citySelect = $('.' + target + '-city-select');
+                    if (d.city) {
+                        var found = false;
+                        citySelect.find('option').each(function() {
+                            if ($(this).val().toLowerCase() === d.city.toLowerCase()) {
+                                $(this).prop('selected', true);
+                                found = true;
+                                return false;
+                            }
+                        });
+                        if (!found && !citySelect.prop('disabled')) {
+                            // City not in dropdown → set as text by selecting "Other" then replacing
+                            citySelect.val('__other__').trigger('change');
+                            var name = citySelect.attr('name');
+                            if (!$('input[name="' + name + '"]').length) {
+                                var input = $('<input type="text" class="form-control" name="' + name + '" required placeholder="Enter city name">');
+                                citySelect.replaceWith(input);
+                            }
+                            $('input[name="' + name + '"]').val(d.city);
+                        }
+                    }
+                    // Auto-fill state
+                    if (d.state) {
+                        $('input[name="' + target + '_state"]').val(d.state);
+                    }
+                    $hint.text('Address detected successfully').css('color', '#2e7d32');
+                    setTimeout(function() { $hint.text(origText).css('color', ''); }, 3000);
+                } else {
+                    $hint.text('No address found for this zip code').css('color', '#d32f2f');
+                    setTimeout(function() { $hint.text(origText).css('color', ''); }, 3000);
+                }
+            }).fail(function() {
+                $hint.text(origText).css('color', '');
+            });
+        }, 800);
     });
 });
 </script>
