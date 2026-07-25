@@ -19,7 +19,7 @@ class ApiController extends Controller
         header('Content-Type: application/json');
 
         $countries = $this->db->fetchAll(
-            "SELECT id, name, iso2, iso3, phone_code FROM countries ORDER BY name ASC"
+            "SELECT id, name, code, phone_code, currency FROM countries WHERE is_active = 1 ORDER BY name ASC"
         );
 
         echo json_encode(['success' => true, 'data' => $countries]);

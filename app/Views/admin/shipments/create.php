@@ -498,7 +498,7 @@
                     <span class="cs-tracking-label">Customer (Optional)</span>
                     <div class="cs-input-icon-group">
                         <i class="bi bi-person cs-input-icon"></i>
-                        <select name="customer_id">
+                        <select name="customer_id" class="select2">
                             <option value="">Walk-in Customer</option>
                             <?php foreach ($customers as $c): ?>
                             <option value="<?= $c->id ?>"><?= htmlspecialchars($c->first_name . ' ' . $c->last_name) ?> (<?= htmlspecialchars($c->email) ?>)</option>
@@ -884,10 +884,10 @@
                         <label class="cs-label">Origin Branch</label>
                         <div class="cs-input-icon-group">
                             <i class="bi bi-geo-alt-fill cs-input-icon"></i>
-                            <select name="origin_branch_id">
-                                <option value="">Select branch...</option>
+                            <select name="origin_branch_id" class="select2">
+                                <option value="">Search or select branch...</option>
                                 <?php foreach ($branches as $b): ?>
-                                <option value="<?= $b->id ?>"><?= htmlspecialchars($b->name) ?> - <?= htmlspecialchars($b->city) ?></option>
+                                <option value="<?= $b->id ?>"><?= htmlspecialchars($b->name) ?> — <?= htmlspecialchars($b->city) ?>, <?= htmlspecialchars($b->country ?? '') ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -896,10 +896,10 @@
                         <label class="cs-label">Destination Branch</label>
                         <div class="cs-input-icon-group">
                             <i class="bi bi-geo-alt cs-input-icon"></i>
-                            <select name="destination_branch_id">
-                                <option value="">Select branch...</option>
+                            <select name="destination_branch_id" class="select2">
+                                <option value="">Search or select branch...</option>
                                 <?php foreach ($branches as $b): ?>
-                                <option value="<?= $b->id ?>"><?= htmlspecialchars($b->name) ?> - <?= htmlspecialchars($b->city) ?></option>
+                                <option value="<?= $b->id ?>"><?= htmlspecialchars($b->name) ?> — <?= htmlspecialchars($b->city) ?>, <?= htmlspecialchars($b->country ?? '') ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -910,8 +910,8 @@
                         <label class="cs-label">Assign Driver</label>
                         <div class="cs-input-icon-group">
                             <i class="bi bi-person-circle cs-input-icon"></i>
-                            <select name="assigned_driver_id">
-                                <option value="">Select driver...</option>
+                            <select name="assigned_driver_id" class="select2">
+                                <option value="">Search or select driver...</option>
                                 <?php foreach ($drivers as $d): ?>
                                 <option value="<?= $d->id ?>"><?= htmlspecialchars($d->first_name . ' ' . $d->last_name) ?></option>
                                 <?php endforeach; ?>
@@ -922,8 +922,8 @@
                         <label class="cs-label">Assign Vehicle</label>
                         <div class="cs-input-icon-group">
                             <i class="bi bi-truck cs-input-icon"></i>
-                            <select name="assigned_vehicle_id">
-                                <option value="">Select vehicle...</option>
+                            <select name="assigned_vehicle_id" class="select2">
+                                <option value="">Search or select vehicle...</option>
                                 <?php foreach ($vehicles as $v): ?>
                                 <option value="<?= $v->id ?>"><?= htmlspecialchars($v->name . ' (' . $v->registration_number . ')') ?></option>
                                 <?php endforeach; ?>
