@@ -97,7 +97,7 @@ class WhatsAppModel
 
     // ==================== Contacts ====================
 
-    public function getContacts(string $search = '', string $instance = '', int $page = 1, int $perPage = 25): array
+    public function getContacts(string $search = '', string $instance = '', int $page = 1, int $perPage = 25)
     {
         $where = "WHERE 1=1";
         $params = [];
@@ -465,7 +465,7 @@ class WhatsAppModel
 
     // ==================== Logs ====================
 
-    public function getLogs(string $instance = '', int $page = 1, int $perPage = 50): array
+    public function getLogs(string $instance = '', int $page = 1, int $perPage = 50)
     {
         $where = "WHERE 1=1";
         $params = [];
