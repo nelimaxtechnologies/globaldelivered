@@ -467,8 +467,8 @@
                     </div>
                     <div class="form-group">
                         <label for="destination_branch_id">Destination Branch</label>
-                        <select name="destination_branch_id" id="destination_branch_id">
-                            <option value="">-- Select --</option>
+                        <select name="destination_branch_id" id="destination_branch_id" class="select2">
+                            <option value="">Search or select branch...</option>
                             <?php foreach ($branches as $b): ?>
                                 <option value="<?= $b->id ?>" <?= $shipment->destination_branch_id == $b->id ? 'selected' : '' ?>><?= htmlspecialchars($b->name) ?></option>
                             <?php endforeach; ?>
@@ -476,8 +476,8 @@
                     </div>
                     <div class="form-group">
                         <label for="assigned_driver_id">Assigned Driver</label>
-                        <select name="assigned_driver_id" id="assigned_driver_id">
-                            <option value="">-- None --</option>
+                        <select name="assigned_driver_id" id="assigned_driver_id" class="select2">
+                            <option value="">Search or select driver...</option>
                             <?php foreach ($drivers as $d): ?>
                                 <option value="<?= $d->id ?>" <?= $shipment->assigned_driver_id == $d->id ? 'selected' : '' ?>><?= htmlspecialchars($d->first_name . ' ' . $d->last_name) ?></option>
                             <?php endforeach; ?>
@@ -487,8 +487,8 @@
                 <div class="form-row cols-3">
                     <div class="form-group">
                         <label for="assigned_vehicle_id">Assigned Vehicle</label>
-                        <select name="assigned_vehicle_id" id="assigned_vehicle_id">
-                            <option value="">-- None --</option>
+                        <select name="assigned_vehicle_id" id="assigned_vehicle_id" class="select2">
+                            <option value="">Search or select vehicle...</option>
                             <?php foreach ($vehicles as $v): ?>
                                 <option value="<?= $v->id ?>" <?= $shipment->assigned_vehicle_id == $v->id ? 'selected' : '' ?>><?= htmlspecialchars($v->registration_number) ?></option>
                             <?php endforeach; ?>

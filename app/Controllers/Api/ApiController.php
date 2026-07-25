@@ -250,4 +250,223 @@ class ApiController extends Controller
             ],
         ];
     }
+
+    /**
+     * Evolution API Webhook Handler
+     * Receives WhatsApp events from Evolution API.
+     * POST /api/webhooks/evolution
+     */
+    public function evolutionWebhook(): void
+    {
+        header('Content-Type: application/json');
+
+        try {
+            $settings = $this->db->fetch("SELECT * FROM whatsapp_settings LIMIT 1");
+
+            // Validate webhook secret if configured
+            if (!empty($settings->webhook_secret)) {
+                $secret = $_SERVER['HTTP_X_WEBHOOK_SECRET'] ?? $_GET['secret'] ?? '';
+                if ($secret !== $settings->webhook_secret) {
+                    http_response_code(403);
+                    echo json_encode(['error' => 'Invalid webhook secret']);
+                    exit;
+                }
+            }
+
+            $payload = json_decode(file_get_contents('php://input'), true);
+
+            if (!$payload) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Invalid payload']);
+                exit;
+            }
+
+            $event = $payload['event'] ?? '';
+            $instance = $payload['instance'] ?? '';
+            $data = $payload['data'] ?? [];
+
+            error_log("Evolution webhook: event={$event} instance={$instance}");
+
+            switch ($event) {
+                case 'messages.upsert':
+                    $this->handleIncomingMessage($instance, $data);
+                    break;
+
+                case 'messages.update':
+                    $this->handleMessagesUpdate($instance, $data);
+                    break;
+
+                case 'connection.update':
+                    $this->handleConnectionUpdate($instance, $data);
+                    break;
+
+                case 'qrcode.updated':
+                    $this->handleQRUpdate($instance, $data);
+                    break;
+
+                default:
+                    error_log("Evolution webhook: Unknown event {$event} from {$instance}");
+            }
+
+            echo json_encode(['success' => true, 'event' => $event]);
+
+        } catch (\Exception $e) {
+            error_log("Evolution webhook error: " . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['error' => 'Internal error']);
+        }
+        exit;
+    }
+
+    private function handleIncomingMessage(string $instance, array $data): void
+    {
+        $message = $data['data'] ?? $data;
+        $key = $message['key'] ?? [];
+        $phone = str_replace('@s.whatsapp.net', '', $key['remoteJid'] ?? '');
+        $fromMe = $key['fromMe'] ?? false;
+        $messageId = $key['id'] ?? '';
+        $pushName = $message['pushName'] ?? '';
+
+        if (!$phone || $phone === 'status@broadcast') return;
+
+        $messageType = 'text';
+        $messageText = '';
+        $mediaUrl = null;
+        $mediaType = null;
+
+        if (isset($message['message'])) {
+            $msg = $message['message'];
+            if (isset($msg['conversation'])) {
+                $messageText = $msg['conversation'];
+            } elseif (isset($msg['extendedTextMessage']['text'])) {
+                $messageText = $msg['extendedTextMessage']['text'];
+            } elseif (isset($msg['imageMessage'])) {
+                $messageType = 'image';
+                $messageText = $msg['imageMessage']['caption'] ?? '';
+                $mediaUrl = $msg['imageMessage']['url'] ?? null;
+                $mediaType = 'image';
+            } elseif (isset($msg['videoMessage'])) {
+                $messageType = 'video';
+                $messageText = $msg['videoMessage']['caption'] ?? '';
+                $mediaUrl = $msg['videoMessage']['url'] ?? null;
+                $mediaType = 'video';
+            } elseif (isset($msg['documentMessage'])) {
+                $messageType = 'document';
+                $messageText = $msg['documentMessage']['caption'] ?? '';
+                $mediaUrl = $msg['documentMessage']['url'] ?? null;
+                $mediaType = $msg['documentMessage']['mimetype'] ?? 'document';
+            } elseif (isset($msg['audioMessage'])) {
+                $messageType = 'audio';
+                $mediaUrl = $msg['audioMessage']['url'] ?? null;
+                $mediaType = 'audio';
+            } elseif (isset($msg['locationMessage'])) {
+                $messageType = 'location';
+                $messageText = $msg['locationMessage']['name'] ?? '';
+            } elseif (isset($msg['contactMessage'])) {
+                $messageType = 'contact';
+                $messageText = $msg['contactMessage']['displayName'] ?? '';
+            }
+        }
+
+        $contactName = $pushName ?: $phone;
+
+        // Save/update contact
+        $this->db->query(
+            "INSERT INTO whatsapp_contacts (phone, name, instance_name, last_seen, created_at)
+             VALUES (?, ?, ?, NOW(), NOW())
+             ON DUPLICATE KEY UPDATE name = VALUES(name), last_seen = NOW()",
+            [$phone, $contactName, $instance]
+        );
+
+        // Save message
+        $this->db->query(
+            "INSERT INTO whatsapp_messages (instance_name, phone, contact_name, direction, message_type, message, media_url, media_type, status, message_id, from_me, read_status, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'delivered', ?, ?, 0, NOW())",
+            [
+                $instance, $phone, $contactName,
+                $fromMe ? 'outbound' : 'inbound',
+                $messageType, $messageText,
+                $mediaUrl, $mediaType,
+                $messageId, $fromMe ? 1 : 0,
+            ]
+        );
+    }
+
+    private function handleMessagesUpdate(string $instance, array $data): void
+    {
+        $key = $data['key'] ?? [];
+        $messageId = $key['id'] ?? '';
+        $status = $data['update'] ?? [];
+
+        if (empty($messageId)) return;
+
+        if (isset($status['status'])) {
+            $newStatus = $status['status'];
+            $dbStatus = match($newStatus) {
+                'DELIVERY_ACK' => 'delivered',
+                'READ' => 'read',
+                'PLAYED' => 'played',
+                'SENT' => 'sent',
+                'SERVER_ACK' => 'sent',
+                default => 'sent',
+            };
+
+            $this->db->query(
+                "UPDATE whatsapp_messages SET status = ? WHERE message_id = ?",
+                [$dbStatus, $messageId]
+            );
+
+            if ($dbStatus === 'read') {
+                $this->db->query(
+                    "UPDATE whatsapp_messages SET read_status = 1, read_at = NOW() WHERE message_id = ?",
+                    [$messageId]
+                );
+            }
+        }
+    }
+
+    private function handleConnectionUpdate(string $instance, array $data): void
+    {
+        $state = $data['state'] ?? $data['connection'] ?? 'disconnected';
+
+        $statusMap = [
+            'open' => 'open',
+            'close' => 'disconnected',
+            'connecting' => 'connecting',
+        ];
+
+        $dbStatus = $statusMap[$state] ?? 'disconnected';
+
+        $this->db->query(
+            "UPDATE whatsapp_instances SET status = ? WHERE instance_name = ?",
+            [$dbStatus, $instance]
+        );
+
+        if ($dbStatus === 'open') {
+            $this->db->query(
+                "UPDATE whatsapp_instances SET qrcode = NULL WHERE instance_name = ?",
+                [$instance]
+            );
+
+            if (isset($data['user']) || isset($data['info'])) {
+                $user = $data['user'] ?? $data['info'] ?? [];
+                $this->db->query(
+                    "UPDATE whatsapp_instances SET phone = ?, profile_name = ? WHERE instance_name = ?",
+                    [$user['id'] ?? $user['phone'] ?? '', $user['name'] ?? $user['pushName'] ?? '', $instance]
+                );
+            }
+        }
+    }
+
+    private function handleQRUpdate(string $instance, array $data): void
+    {
+        $qrcode = $data['base64'] ?? $data['data'] ?? null;
+
+        if ($qrcode) {
+            $this->db->query(
+                "UPDATE whatsapp_instances SET qrcode = ? WHERE instance_name = ?",
+                [$qrcode, $instance]
+            );
+        }
+    }
 }

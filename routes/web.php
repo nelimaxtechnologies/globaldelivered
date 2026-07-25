@@ -61,6 +61,11 @@ Router::group(['prefix' => 'dashboard', 'middleware' => ['AuthMiddleware']], fun
 });
 
 // ------------------------------------------------
+// Webhook Routes (public, no auth)
+// ------------------------------------------------
+Router::post('/api/webhooks/evolution', 'Api\\ApiController@evolutionWebhook');
+
+// ------------------------------------------------
 // Admin Routes
 // ------------------------------------------------
 Router::group(['prefix' => 'admin', 'middleware' => ['AuthMiddleware']], function () {
