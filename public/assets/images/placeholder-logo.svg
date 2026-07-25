@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60">
+  <rect width="200" height="60" fill="#1a237e" rx="8"/>
+  <text x="20" y="38" font-family="Arial, sans-serif" font-weight="800" font-size="22" fill="#fff">GDL</text>
+  <text x="65" y="38" font-family="Arial, sans-serif" font-weight="600" font-size="14" fill="#ffc107">Global</text>
+  <text x="65" y="52" font-family="Arial, sans-serif" font-weight="600" font-size="14" fill="#fff">Delivered</text>
+</svg>

@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 600" fill="none">
+  <!-- Shadow -->
+  <ellipse cx="250" cy="580" rx="120" ry="15" fill="rgba(0,0,0,0.15)"/>
+  
+  <!-- Legs -->
+  <path d="M220 420 L200 520 L230 525 L250 430" fill="#1a237e"/>
+  <path d="M280 420 L300 520 L270 525 L250 430" fill="#1a237e"/>
+  
+  <!-- Shoes -->
+  <path d="M190 515 L235 520 L235 535 L185 530 Z" fill="#333"/>
+  <path d="M310 515 L265 520 L265 535 L315 530 Z" fill="#333"/>
+  
+  <!-- Body / Shirt -->
+  <path d="M200 280 Q200 260 250 250 Q300 260 300 280 L310 420 L190 420 Z" fill="#4a6cf7"/>
+  
+  <!-- Shirt Details -->
+  <line x1="250" y1="250" x2="250" y2="420" stroke="#3d5af1" stroke-width="2"/>
+  <circle cx="250" cy="300" r="4" fill="#fff"/>
+  <circle cx="250" cy="340" r="4" fill="#fff"/>
+  <circle cx="250" cy="380" r="4" fill="#fff"/>
+  
+  <!-- Arms -->
+  <path d="M200 290 Q160 320 170 380 L190 375 Q185 330 210 300" fill="#4a6cf7"/>
+  <path d="M300 290 Q340 320 330 380 L310 375 Q315 330 290 300" fill="#4a6cf7"/>
+  
+  <!-- Hands -->
+  <circle cx="175" cy="385" r="12" fill="#d4a574"/>
+  <circle cx="325" cy="385" r="12" fill="#d4a574"/>
+  
+  <!-- Package -->
+  <rect x="280" y="320" width="90" height="80" rx="6" fill="#f5a623"/>
+  <rect x="280" y="320" width="90" height="80" rx="6" fill="none" stroke="#e8961e" stroke-width="3"/>
+  <line x1="325" y1="320" x2="325" y2="400" stroke="#e8961e" stroke-width="3"/>
+  <line x1="280" y1="360" x2="370" y2="360" stroke="#e8961e" stroke-width="3"/>
+  <text x="325" y="355" text-anchor="middle" fill="#fff" font-size="14" font-weight="bold">GDL</text>
+  
+  <!-- Neck -->
+  <rect x="235" y="225" width="30" height="30" fill="#d4a574"/>
+  
+  <!-- Head -->
+  <ellipse cx="250" cy="195" rx="55" ry="60" fill="#d4a574"/>
+  
+  <!-- Hair -->
+  <path d="M195 180 Q195 130 250 125 Q305 130 305 180 Q305 160 250 155 Q195 160 195 180" fill="#2c2c2c"/>
+  
+  <!-- Cap -->
+  <path d="M190 170 Q190 140 250 135 Q310 140 310 170 L310 175 Q310 165 250 160 Q190 165 190 175 Z" fill="#4a6cf7"/>
+  <rect x="185" y="168" width="130" height="8" rx="4" fill="#3d5af1"/>
+  <path d="M310 170 L340 175 L310 180" fill="#3d5af1"/>
+  
+  <!-- Face -->
+  <circle cx="230" cy="195" r="5" fill="#333"/>
+  <circle cx="270" cy="195" r="5" fill="#333"/>
+  <circle cx="231" cy="194" r="2" fill="#fff"/>
+  <circle cx="271" cy="194" r="2" fill="#fff"/>
+  <path d="M235 215 Q250 225 265 215" stroke="#c4956a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  
+  <!-- Eyebrows -->
+  <path d="M220 182 Q230 178 240 182" stroke="#2c2c2c" stroke-width="2.5" fill="none"/>
+  <path d="M260 182 Q270 178 280 182" stroke="#2c2c2c" stroke-width="2.5" fill="none"/>
+  
+  <!-- Badge on shirt -->
+  <rect x="210" y="270" width="35" height="18" rx="3" fill="#fff"/>
+  <text x="227" y="283" text-anchor="middle" fill="#4a6cf7" font-size="9" font-weight="bold">GDL</text>
+</svg>
