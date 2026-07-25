@@ -418,6 +418,22 @@ CREATE TABLE `tracking_history` (
   FOREIGN KEY (`updated_by`) REFERENCES `users`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE `shipment_notification_subscriptions` (
+  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `tracking_number` VARCHAR(50) NOT NULL,
+  `email` VARCHAR(255) NOT NULL,
+  `name` VARCHAR(255) NULL,
+  `notify_email` TINYINT(1) DEFAULT 1,
+  `is_active` TINYINT(1) DEFAULT 1,
+  `unsubscribed_at` TIMESTAMP NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY `unique_sub` (`tracking_number`, `email`),
+  INDEX `idx_sub_tracking` (`tracking_number`),
+  INDEX `idx_sub_email` (`email`),
+  INDEX `idx_sub_active` (`is_active`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ---------------------------------------------------------
 -- 8. INVOICES & PAYMENTS
 -- ---------------------------------------------------------

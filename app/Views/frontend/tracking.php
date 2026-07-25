@@ -70,7 +70,22 @@
         
         <!-- Tracking Result -->
         <div id="trackingResult">
-            <?php if (isset($shipment)): ?>
+            <?php if (isset($unsubscribeMessage)): ?>
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="alert alert-success text-center py-4">
+                        <div class="display-6 text-success mb-3">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </div>
+                        <h5 class="fw-bold"><?= htmlspecialchars($unsubscribeMessage) ?></h5>
+                        <p class="text-muted mb-3">You will no longer receive email notifications for this shipment.</p>
+                        <a href="<?= BASE_URL ?>/tracking" class="btn btn-primary mt-2">
+                            <i class="bi bi-arrow-left me-1"></i> Track Another Shipment
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <?php elseif (isset($shipment)): ?>
             <script>
                 $(document).ready(function() {
                     $.ajax({

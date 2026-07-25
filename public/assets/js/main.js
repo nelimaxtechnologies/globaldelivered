@@ -435,6 +435,50 @@
                 html += '</div></div></div>';
             }
             
+            // Notification Opt-In Card
+            html += `
+                <div class="card mb-4 border-primary" id="notifyCard">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="flex-shrink-0">
+                                <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width:48px;height:48px;">
+                                    <i class="bi bi-bell text-primary fs-5"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="fw-bold mb-1">Get Notified of Updates</h6>
+                                <p class="text-muted small mb-3 mb-lg-0">Receive an email whenever the status of this shipment changes.</p>
+                            </div>
+                        </div>
+                        <div id="notifyFormWrap" class="mt-3">
+                            <form id="notifyForm" class="row g-2 align-items-end">
+                                <input type="hidden" name="tracking_number" value="${shipment.tracking_number}">
+                                <div class="col-sm-5">
+                                    <label class="form-label small">Your Name</label>
+                                    <input type="text" name="name" class="form-control form-control-sm" placeholder="John Doe">
+                                </div>
+                                <div class="col-sm-5">
+                                    <label class="form-label small">Email Address <span class="text-danger">*</span></label>
+                                    <input type="email" name="email" class="form-control form-control-sm" placeholder="you@example.com" required>
+                                </div>
+                                <div class="col-sm-2 d-grid">
+                                    <button type="submit" class="btn btn-primary btn-sm" id="notifyBtn">
+                                        <i class="bi bi-bell me-1"></i> Subscribe
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        <div id="notifySuccess" class="d-none mt-3">
+                            <div class="alert alert-success py-2 mb-0">
+                                <i class="bi bi-check-circle-fill me-1"></i>
+                                <span id="notifyMsg">You will receive email notifications for future updates.</span>
+                                <a href="#" id="notifyUnsubLink" class="ms-2 small text-decoration-underline" style="display:none;">Unsubscribe</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
             html += '</div>';
             
             // Add Leaflet Live Map if coordinates are available
@@ -548,6 +592,103 @@
         window.renderTrackingResult = renderTrackingResult;
         window.startPolling = startPolling;
         window.showTrackingError = showTrackingError;
+
+        // Notification subscription form
+        $(document).on('submit', '#notifyForm', function(e) {
+            e.preventDefault();
+            const $form = $(this);
+            const $btn = $('#notifyBtn');
+            const $wrap = $('#notifyFormWrap');
+            const $success = $('#notifySuccess');
+            const $msg = $('#notifyMsg');
+            const $unsubLink = $('#notifyUnsubLink');
+            const origHtml = $btn.html();
+
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+            $.ajax({
+                url: GDL.BASE_URL + '/tracking/subscribe',
+                method: 'POST',
+                data: $form.serialize() + '&_csrf_token=' + GDL.CSRF_TOKEN,
+                dataType: 'json',
+                success: function(response) {
+                    if (response._csrf_token) {
+                        GDL.CSRF_TOKEN = response._csrf_token;
+                        $('meta[name="csrf-token"]').attr('content', response._csrf_token);
+                    }
+                    if (response.success) {
+                        $wrap.addClass('d-none');
+                        $msg.text(response.message || 'You will receive email notifications for future updates.');
+                        $unsubLink.attr('href', GDL.BASE_URL + '/tracking/unsubscribe?tracking_number=' + encodeURIComponent($form.find('[name=tracking_number]').val()) + '&email=' + encodeURIComponent($form.find('[name=email]').val()));
+                        $unsubLink.show();
+                        $success.removeClass('d-none');
+                    } else {
+                        showToast(response.message || 'Subscription failed.', 'error');
+                        $btn.prop('disabled', false).html(origHtml);
+                    }
+                },
+                error: function() {
+                    showToast('Network error. Please try again.', 'error');
+                    $btn.prop('disabled', false).html(origHtml);
+                }
+            });
+        });
+
+        // Check existing subscription when tracking result loads
+        $(document).on('click', '#notifyCard input[name=email]', function() {
+            const email = $(this).val().trim();
+            const trackingNumber = $('#notifyForm input[name=tracking_number]').val();
+            if (email && trackingNumber && email.indexOf('@') > 0) {
+                $.ajax({
+                    url: GDL.BASE_URL + '/tracking/check-subscription',
+                    method: 'POST',
+                    data: { tracking_number: trackingNumber, email: email, _csrf_token: GDL.CSRF_TOKEN },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response._csrf_token) {
+                            GDL.CSRF_TOKEN = response._csrf_token;
+                            $('meta[name="csrf-token"]').attr('content', response._csrf_token);
+                        }
+                        if (response.success && response.data.subscribed) {
+                            const $wrap = $('#notifyFormWrap');
+                            const $success = $('#notifySuccess');
+                            const $msg = $('#notifyMsg');
+                            const $unsubLink = $('#notifyUnsubLink');
+                            $wrap.addClass('d-none');
+                            $msg.text('You are already subscribed to notifications for this shipment.');
+                            $unsubLink.attr('href', GDL.BASE_URL + '/tracking/unsubscribe?tracking_number=' + encodeURIComponent(trackingNumber) + '&email=' + encodeURIComponent(email));
+                            $unsubLink.show();
+                            $success.removeClass('d-none');
+                        }
+                    }
+                });
+            }
+        });
+
+        // Unsubscribe link inside success alert
+        $(document).on('click', '#notifyUnsubLink', function(e) {
+            e.preventDefault();
+            const url = $(this).attr('href');
+            const $wrap = $('#notifyFormWrap');
+            const $success = $('#notifySuccess');
+
+            $.ajax({
+                url: url,
+                method: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        $success.addClass('d-none');
+                        $wrap.removeClass('d-none');
+                        $('#notifyBtn').prop('disabled', false).html('<i class="bi bi-bell me-1"></i> Subscribe');
+                        showToast(response.message || 'Unsubscribed successfully.', 'success');
+                    }
+                },
+                error: function() {
+                    window.location.href = url;
+                }
+            });
+        });
 
         // Clean up polling on page unload
         $(window).on('beforeunload', function() {

@@ -71,6 +71,110 @@ class TrackingController extends Controller
     }
 
     /**
+     * Subscribe to tracking notifications (AJAX)
+     */
+    public function subscribe(): void
+    {
+        $trackingNumber = sanitize($_POST['tracking_number'] ?? '');
+        $email = sanitize($_POST['email'] ?? '');
+        $name = sanitize($_POST['name'] ?? '');
+
+        if (empty($trackingNumber) || empty($email)) {
+            $this->error('Tracking number and email are required.');
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->error('Please enter a valid email address.');
+        }
+
+        $shipment = $this->db->fetch(
+            "SELECT id, tracking_number FROM shipments WHERE tracking_number = ? AND deleted_at IS NULL",
+            [$trackingNumber]
+        );
+
+        if (!$shipment) {
+            $this->error('Shipment not found.');
+        }
+
+        $existing = $this->db->fetch(
+            "SELECT id, is_active FROM shipment_notification_subscriptions WHERE tracking_number = ? AND email = ?",
+            [$trackingNumber, $email]
+        );
+
+        if ($existing) {
+            if ($existing->is_active) {
+                $this->error('You are already subscribed to notifications for this shipment.');
+            }
+            $this->db->query(
+                "UPDATE shipment_notification_subscriptions SET is_active = 1, unsubscribed_at = NULL, updated_at = NOW() WHERE id = ?",
+                [$existing->id]
+            );
+        } else {
+            $this->db->query(
+                "INSERT INTO shipment_notification_subscriptions (tracking_number, email, name, notify_email, is_active, created_at)
+                 VALUES (?, ?, ?, 1, 1, NOW())",
+                [$trackingNumber, $email, $name ?: null]
+            );
+        }
+
+        $this->success([], 'You will receive email notifications for future tracking updates.');
+    }
+
+    /**
+     * Unsubscribe from tracking notifications (GET link or AJAX POST)
+     */
+    public function unsubscribe(): void
+    {
+        $trackingNumber = sanitize($_GET['tracking_number'] ?? $_POST['tracking_number'] ?? '');
+        $email = sanitize($_GET['email'] ?? $_POST['email'] ?? '');
+
+        if (empty($trackingNumber) || empty($email)) {
+            $this->view('frontend/tracking', [
+                'pageTitle' => 'Unsubscribe',
+                'unsubscribeMessage' => 'Invalid unsubscribe link.',
+            ]);
+            return;
+        }
+
+        $this->db->query(
+            "UPDATE shipment_notification_subscriptions SET is_active = 0, unsubscribed_at = NOW(), updated_at = NOW()
+             WHERE tracking_number = ? AND email = ?",
+            [$trackingNumber, $email]
+        );
+
+        if ($this->isAjax()) {
+            $this->success([], 'You have been unsubscribed from notifications.');
+            return;
+        }
+
+        $this->view('frontend/tracking', [
+            'pageTitle' => 'Unsubscribed',
+            'unsubscribeMessage' => 'You have been unsubscribed from tracking notifications for ' . htmlspecialchars($trackingNumber) . '.',
+        ]);
+    }
+
+    /**
+     * Check if email is subscribed (AJAX)
+     */
+    public function checkSubscription(): void
+    {
+        $trackingNumber = sanitize($_POST['tracking_number'] ?? '');
+        $email = sanitize($_POST['email'] ?? '');
+
+        if (empty($trackingNumber) || empty($email)) {
+            $this->success(['subscribed' => false]);
+            return;
+        }
+
+        $sub = $this->db->fetch(
+            "SELECT id FROM shipment_notification_subscriptions WHERE tracking_number = ? AND email = ? AND is_active = 1",
+            [$trackingNumber, $email]
+        );
+
+        $this->success(['subscribed' => (bool) $sub]);
+    }
+
+    /**
      * Show tracking result page (from direct URL)
      */
     public function show(string $number): void

@@ -387,6 +387,9 @@ class ShipmentController extends Controller
                 'new_status' => $status
             ]);
             
+            // Notify subscribers
+            $this->notifySubscribers($shipment->tracking_number, $status, $location, $description);
+            
             $this->success(['status' => $status], 'Status updated successfully!');
             
         } catch (\Exception $e) {
@@ -710,5 +713,33 @@ class ShipmentController extends Controller
             'on_hold' => 'pending',
         ];
         return $map[$slug] ?? 'active';
+    }
+
+    /**
+     * Send email notifications to all active subscribers for a shipment
+     */
+    private function notifySubscribers(string $trackingNumber, string $status, string $location, string $description): void
+    {
+        $subscribers = $this->db->fetchAll(
+            "SELECT email, name FROM shipment_notification_subscriptions
+             WHERE tracking_number = ? AND is_active = 1",
+            [$trackingNumber]
+        );
+
+        if (empty($subscribers)) {
+            return;
+        }
+
+        $emailService = new \App\Services\EmailService();
+
+        foreach ($subscribers as $sub) {
+            $emailService->sendStatusUpdate(
+                $sub->email,
+                $sub->name ?: 'Valued Customer',
+                $trackingNumber,
+                $status,
+                $location
+            );
+        }
     }
 }

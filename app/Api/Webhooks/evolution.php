@@ -4,7 +4,7 @@
  * Receives events from Evolution API and processes them.
  */
 
-require_once __DIR__ . '/../../bootstrap.php';
+require_once __DIR__ . '/../../../index.php';
 
 use App\Models\WhatsAppModel;
 use App\Services\EvolutionAPI;
