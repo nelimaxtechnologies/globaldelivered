@@ -235,7 +235,7 @@ class WhatsAppModel
 
     public function getMessageStats(): array
     {
-        return $this->db->fetch(
+        $row = $this->db->fetch(
             "SELECT
                 COUNT(*) as total,
                 SUM(CASE WHEN direction = 'outbound' THEN 1 ELSE 0 END) as sent,
@@ -245,6 +245,7 @@ class WhatsAppModel
                 SUM(CASE WHEN DATE(created_at) = CURDATE() THEN 1 ELSE 0 END) as today
              FROM whatsapp_messages"
         );
+        return $row ? (array) $row : ['total'=>0,'sent'=>0,'received'=>0,'pending'=>0,'failed'=>0,'today'=>0];
     }
 
     public function getDailyStats(int $days = 7): array
