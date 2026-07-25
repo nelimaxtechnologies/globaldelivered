@@ -46,25 +46,19 @@ class ContactController extends Controller
         $validated = $this->validate($data, $rules);
 
         try {
-            // Store in database
-            $stmt = $this->db->prepare(
-                "INSERT INTO notifications (type, subject, message, data, created_at)
-                 VALUES ('system', ?, ?, ?, NOW())"
+            // Store in contact_submissions table
+            $this->db->query(
+                "INSERT INTO contact_submissions (name, email, phone, subject, message, ip_address, created_at)
+                 VALUES (?, ?, ?, ?, ?, ?, NOW())",
+                [
+                    sanitize($data['name']),
+                    sanitize($data['email']),
+                    sanitize($data['phone'] ?? ''),
+                    sanitize($data['subject']),
+                    sanitize($data['message']),
+                    $_SERVER['REMOTE_ADDR'] ?? '',
+                ]
             );
-
-            $messageData = json_encode([
-                'name' => sanitize($data['name']),
-                'email' => sanitize($data['email']),
-                'phone' => sanitize($data['phone'] ?? ''),
-                'message' => sanitize($data['message']),
-                'ip' => $_SERVER['REMOTE_ADDR'] ?? '',
-            ]);
-
-            $stmt->execute([
-                'Contact Form: ' . sanitize($data['subject']),
-                sanitize($data['message']),
-                $messageData,
-            ]);
 
             // Send email via PHPMailer SMTP
             $emailService = EmailService::getInstance();

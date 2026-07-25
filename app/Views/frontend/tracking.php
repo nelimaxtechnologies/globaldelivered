@@ -123,29 +123,37 @@
         <!-- Quick Tips -->
         <div class="row justify-content-center mt-5">
             <div class="col-lg-10">
-                <div class="card border">
-                    <div class="card-body p-4">
-                        <div class="row g-4">
-                            <div class="col-md-4">
-                                <div class="text-center">
-                                    <i class="bi bi-question-circle text-primary fs-1 mb-2"></i>
-                                    <h6 class="fw-bold">Where to Find Your Tracking Number</h6>
-                                    <p class="small mb-0">Check your shipping confirmation email, order receipt, or SMS notification.</p>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm h-100 text-center tracking-tips-card" style="border-radius:16px;">
+                            <div class="card-body p-4">
+                                <div class="mx-auto mb-3" style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#0d6efd,#0b5ed7);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(13,110,253,0.3);">
+                                    <i class="bi bi-search text-white" style="font-size:1.6rem;"></i>
                                 </div>
+                                <h6 class="fw-bold mb-2">Where to Find Your Tracking Number</h6>
+                                <p class="text-muted small mb-0">Check your shipping confirmation email, order receipt, or SMS notification.</p>
                             </div>
-                            <div class="col-md-4">
-                                <div class="text-center">
-                                    <i class="bi bi-envelope text-primary fs-1 mb-2"></i>
-                                    <h6 class="fw-bold">Get Email Updates</h6>
-                                    <p class="small mb-0">Sign up for automatic email notifications at every shipment milestone.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm h-100 text-center tracking-tips-card" style="border-radius:16px;">
+                            <div class="card-body p-4">
+                                <div class="mx-auto mb-3" style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#198754,#146c43);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(25,135,84,0.3);">
+                                    <i class="bi bi-bell text-white" style="font-size:1.6rem;"></i>
                                 </div>
+                                <h6 class="fw-bold mb-2">Get Email Updates</h6>
+                                <p class="text-muted small mb-0">Track a shipment above and subscribe for automatic email notifications at every milestone.</p>
                             </div>
-                            <div class="col-md-4">
-                                <div class="text-center">
-                                    <i class="bi bi-headset text-primary fs-1 mb-2"></i>
-                                    <h6 class="fw-bold">Need Help?</h6>
-                                    <p class="small mb-0">Contact our 24/7 support team at +254729373801 or <a href="<?= BASE_URL ?>/contact">email us</a>.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm h-100 text-center tracking-tips-card" style="border-radius:16px;">
+                            <div class="card-body p-4">
+                                <div class="mx-auto mb-3" style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#6f42c1,#5b32a3);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(111,66,193,0.3);">
+                                    <i class="bi bi-headset text-white" style="font-size:1.6rem;"></i>
                                 </div>
+                                <h6 class="fw-bold mb-2">Need Help?</h6>
+                                <p class="text-muted small mb-0">Contact our 24/7 support team at +254729373801 or <a href="<?= BASE_URL ?>/contact" class="text-decoration-none fw-semibold">email us</a>.</p>
                             </div>
                         </div>
                     </div>
@@ -154,3 +162,8 @@
         </div>
     </div>
 </section>
+
+<style>
+    .tracking-tips-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .tracking-tips-card:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(0,0,0,0.15) !important; }
+</style>

@@ -162,6 +162,11 @@ Router::group(['prefix' => 'admin', 'middleware' => ['AuthMiddleware']], functio
     Router::post('/settings/test-email', 'Admin\\SettingsController@testEmail');
     Router::post('/settings/process-email-queue', 'Admin\\SettingsController@processEmailQueue');
 
+    // Contact Submissions
+    Router::get('/contacts', 'Admin\\SettingsController@contacts');
+    Router::get('/contacts/{id}', 'Admin\\SettingsController@showContact');
+    Router::post('/contacts/{id}/status', 'Admin\\SettingsController@updateContactStatus');
+
     // WhatsApp Integration
     Router::get('/whatsapp', 'Admin\\WhatsAppController@dashboard');
     Router::get('/whatsapp/instances', 'Admin\\WhatsAppController@instances');

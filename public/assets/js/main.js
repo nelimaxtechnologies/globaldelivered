@@ -435,44 +435,68 @@
                 html += '</div></div></div>';
             }
             
-            // Notification Opt-In Card
+            // Notification Opt-In Card (collapsed by default)
+            const notifyEmail = shipment.sender_email || '';
             html += `
-                <div class="card mb-4 border-primary" id="notifyCard">
-                    <div class="card-body">
-                        <div class="d-flex align-items-start gap-3">
-                            <div class="flex-shrink-0">
-                                <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width:48px;height:48px;">
-                                    <i class="bi bi-bell text-primary fs-5"></i>
+                <div class="card mb-4 overflow-hidden" id="notifyCard" style="border:none; background: linear-gradient(135deg, rgba(13,110,253,0.08) 0%, rgba(13,110,253,0.02) 100%); border-left: 4px solid #0d6efd;">
+                    <div class="card-body p-4">
+                        <div id="notifyCollapsed">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="flex-shrink-0" style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#0d6efd,#0b5ed7);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(13,110,253,0.35);">
+                                        <i class="bi bi-bell text-white fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold mb-0">Stay Updated on This Shipment</h6>
+                                        <p class="text-muted small mb-0">Get email alerts when the status changes &mdash; it's free.</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="flex-grow-1">
-                                <h6 class="fw-bold mb-1">Get Notified of Updates</h6>
-                                <p class="text-muted small mb-3 mb-lg-0">Receive an email whenever the status of this shipment changes.</p>
+                                <button type="button" class="btn btn-primary px-4 py-2 fw-semibold" id="notifyExpandBtn" style="border-radius:10px;">
+                                    <i class="bi bi-bell me-1"></i> Subscribe for Updates
+                                </button>
                             </div>
                         </div>
-                        <div id="notifyFormWrap" class="mt-3">
-                            <form id="notifyForm" class="row g-2 align-items-end">
-                                <input type="hidden" name="tracking_number" value="${shipment.tracking_number}">
-                                <div class="col-sm-5">
-                                    <label class="form-label small">Your Name</label>
-                                    <input type="text" name="name" class="form-control form-control-sm" placeholder="John Doe">
+                        <div id="notifyFormWrap" class="d-none mt-0">
+                            <div class="border-top pt-3 mt-1">
+                                <form id="notifyForm" class="row g-3 align-items-end">
+                                    <input type="hidden" name="tracking_number" value="${shipment.tracking_number}">
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-semibold text-muted">Your Name</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text" style="border-radius:10px 0 0 10px;"><i class="bi bi-person"></i></span>
+                                            <input type="text" name="name" class="form-control" placeholder="John Doe" style="border-radius:0 10px 10px 0;">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-semibold text-muted">Email Address <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text" style="border-radius:10px 0 0 10px;"><i class="bi bi-envelope"></i></span>
+                                            <input type="email" name="email" class="form-control" placeholder="you@example.com" value="${notifyEmail}" required style="border-radius:0 10px 10px 0;">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 d-grid">
+                                        <button type="submit" class="btn btn-primary fw-semibold py-2" id="notifyBtn" style="border-radius:10px;">
+                                            <i class="bi bi-bell me-1"></i> Subscribe
+                                        </button>
+                                    </div>
+                                    <div class="col-md-2 d-grid">
+                                        <button type="button" class="btn btn-outline-secondary py-2" id="notifyCancelBtn" style="border-radius:10px;">Cancel</button>
+                                    </div>
+                                </form>
+                                <div class="mt-2">
+                                    <small class="text-muted"><i class="bi bi-lock-fill me-1"></i>Your email is safe with us. Unsubscribe anytime.</small>
                                 </div>
-                                <div class="col-sm-5">
-                                    <label class="form-label small">Email Address <span class="text-danger">*</span></label>
-                                    <input type="email" name="email" class="form-control form-control-sm" placeholder="you@example.com" required>
-                                </div>
-                                <div class="col-sm-2 d-grid">
-                                    <button type="submit" class="btn btn-primary btn-sm" id="notifyBtn">
-                                        <i class="bi bi-bell me-1"></i> Subscribe
-                                    </button>
-                                </div>
-                            </form>
+                            </div>
                         </div>
-                        <div id="notifySuccess" class="d-none mt-3">
-                            <div class="alert alert-success py-2 mb-0">
-                                <i class="bi bi-check-circle-fill me-1"></i>
-                                <span id="notifyMsg">You will receive email notifications for future updates.</span>
-                                <a href="#" id="notifyUnsubLink" class="ms-2 small text-decoration-underline" style="display:none;">Unsubscribe</a>
+                        <div id="notifySuccess" class="d-none mt-0">
+                            <div class="d-flex align-items-center gap-3 p-3 rounded-3" style="background:rgba(25,135,84,0.08); border-left:4px solid #198754;">
+                                <div class="flex-shrink-0" style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#198754,#146c43);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(25,135,84,0.3);">
+                                    <i class="bi bi-check-lg text-white fs-5"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <span class="fw-semibold" id="notifyMsg">You will receive email notifications for future updates.</span>
+                                    <a href="#" id="notifyUnsubLink" class="ms-2 small text-decoration-underline text-muted d-none">Unsubscribe</a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -504,7 +528,36 @@
                 setTimeout(() => initLiveTrackingMap(mapId, lat, lng, shipment.tracking_number), 100);
             }
             
+            // Save notify card state before re-render (polling preserves it)
+            const $existingNotify = $('#notifyCard');
+            let savedNotifyCard = null;
+            let savedNotifyFormVisible = false;
+            let savedNotifySuccessVisible = false;
+            if ($existingNotify.length) {
+                savedNotifyCard = $existingNotify.clone();
+                savedNotifyFormVisible = !$('#notifyFormWrap').hasClass('d-none') && !$('#notifyCollapsed').hasClass('d-none') === false;
+                savedNotifyFormVisible = !$('#notifyCollapsed').hasClass('d-none') && !$('#notifyFormWrap').hasClass('d-none');
+                savedNotifySuccessVisible = !$('#notifySuccess').hasClass('d-none');
+            }
+            
             $result.html(html).fadeIn();
+            
+            // Restore notify card state after re-render
+            if (savedNotifyCard) {
+                const $newNotifyCard = $('#notifyCard');
+                if ($newNotifyCard.length) {
+                    $newNotifyCard.html(savedNotifyCard.html);
+                    if (savedNotifyFormVisible) {
+                        $('#notifyCollapsed').addClass('d-none');
+                        $('#notifyFormWrap').removeClass('d-none');
+                    }
+                    if (savedNotifySuccessVisible) {
+                        $('#notifyCollapsed').addClass('d-none');
+                        $('#notifyFormWrap').addClass('d-none');
+                        $('#notifySuccess').removeClass('d-none');
+                    }
+                }
+            }
         }
         
         // Leaflet Live Tracking Map
@@ -593,15 +646,61 @@
         window.startPolling = startPolling;
         window.showTrackingError = showTrackingError;
 
-        // Notification subscription form
+        // Notification subscription - expand form
+        $(document).on('click', '#notifyExpandBtn', function() {
+            $('#notifyCollapsed').addClass('d-none');
+            $('#notifyFormWrap').removeClass('d-none');
+            // Auto-check if already subscribed
+            const email = $('#notifyForm input[name=email]').val().trim();
+            const trackingNumber = $('#notifyForm input[name=tracking_number]').val();
+            if (email && trackingNumber && email.indexOf('@') > 0) {
+                checkSubStatus(trackingNumber, email);
+            }
+        });
+
+        // Cancel button - collapse form
+        $(document).on('click', '#notifyCancelBtn', function() {
+            $('#notifyFormWrap').addClass('d-none');
+            $('#notifyCollapsed').removeClass('d-none');
+        });
+
+        // Check subscription status
+        function checkSubStatus(trackingNumber, email) {
+            $.ajax({
+                url: GDL.BASE_URL + '/tracking/check-subscription',
+                method: 'POST',
+                data: { tracking_number: trackingNumber, email: email, _csrf_token: GDL.CSRF_TOKEN },
+                dataType: 'json',
+                success: function(response) {
+                    if (response._csrf_token) {
+                        GDL.CSRF_TOKEN = response._csrf_token;
+                        $('meta[name="csrf-token"]').attr('content', response._csrf_token);
+                    }
+                    if (response.success && response.data.subscribed) {
+                        $('#notifyFormWrap').addClass('d-none');
+                        $('#notifyCollapsed').addClass('d-none');
+                        $('#notifyMsg').text('You are already subscribed to notifications for this shipment.');
+                        $('#notifyUnsubLink').attr('href', GDL.BASE_URL + '/tracking/unsubscribe?tracking_number=' + encodeURIComponent(trackingNumber) + '&email=' + encodeURIComponent(email)).removeClass('d-none');
+                        $('#notifySuccess').removeClass('d-none');
+                    }
+                }
+            });
+        }
+
+        // Auto-check on email blur
+        $(document).on('blur', '#notifyForm input[name=email]', function() {
+            const email = $(this).val().trim();
+            const trackingNumber = $('#notifyForm input[name=tracking_number]').val();
+            if (email && trackingNumber && email.indexOf('@') > 0) {
+                checkSubStatus(trackingNumber, email);
+            }
+        });
+
+        // Subscribe form submit
         $(document).on('submit', '#notifyForm', function(e) {
             e.preventDefault();
             const $form = $(this);
             const $btn = $('#notifyBtn');
-            const $wrap = $('#notifyFormWrap');
-            const $success = $('#notifySuccess');
-            const $msg = $('#notifyMsg');
-            const $unsubLink = $('#notifyUnsubLink');
             const origHtml = $btn.html();
 
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
@@ -617,11 +716,11 @@
                         $('meta[name="csrf-token"]').attr('content', response._csrf_token);
                     }
                     if (response.success) {
-                        $wrap.addClass('d-none');
-                        $msg.text(response.message || 'You will receive email notifications for future updates.');
-                        $unsubLink.attr('href', GDL.BASE_URL + '/tracking/unsubscribe?tracking_number=' + encodeURIComponent($form.find('[name=tracking_number]').val()) + '&email=' + encodeURIComponent($form.find('[name=email]').val()));
-                        $unsubLink.show();
-                        $success.removeClass('d-none');
+                        $('#notifyFormWrap').addClass('d-none');
+                        $('#notifyCollapsed').addClass('d-none');
+                        $('#notifyMsg').text(response.message || 'You will receive email notifications for future updates.');
+                        $('#notifyUnsubLink').attr('href', GDL.BASE_URL + '/tracking/unsubscribe?tracking_number=' + encodeURIComponent($form.find('[name=tracking_number]').val()) + '&email=' + encodeURIComponent($form.find('[name=email]').val())).removeClass('d-none');
+                        $('#notifySuccess').removeClass('d-none');
                     } else {
                         showToast(response.message || 'Subscription failed.', 'error');
                         $btn.prop('disabled', false).html(origHtml);
@@ -634,43 +733,10 @@
             });
         });
 
-        // Check existing subscription when tracking result loads
-        $(document).on('click', '#notifyCard input[name=email]', function() {
-            const email = $(this).val().trim();
-            const trackingNumber = $('#notifyForm input[name=tracking_number]').val();
-            if (email && trackingNumber && email.indexOf('@') > 0) {
-                $.ajax({
-                    url: GDL.BASE_URL + '/tracking/check-subscription',
-                    method: 'POST',
-                    data: { tracking_number: trackingNumber, email: email, _csrf_token: GDL.CSRF_TOKEN },
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response._csrf_token) {
-                            GDL.CSRF_TOKEN = response._csrf_token;
-                            $('meta[name="csrf-token"]').attr('content', response._csrf_token);
-                        }
-                        if (response.success && response.data.subscribed) {
-                            const $wrap = $('#notifyFormWrap');
-                            const $success = $('#notifySuccess');
-                            const $msg = $('#notifyMsg');
-                            const $unsubLink = $('#notifyUnsubLink');
-                            $wrap.addClass('d-none');
-                            $msg.text('You are already subscribed to notifications for this shipment.');
-                            $unsubLink.attr('href', GDL.BASE_URL + '/tracking/unsubscribe?tracking_number=' + encodeURIComponent(trackingNumber) + '&email=' + encodeURIComponent(email));
-                            $unsubLink.show();
-                            $success.removeClass('d-none');
-                        }
-                    }
-                });
-            }
-        });
-
         // Unsubscribe link inside success alert
         $(document).on('click', '#notifyUnsubLink', function(e) {
             e.preventDefault();
             const url = $(this).attr('href');
-            const $wrap = $('#notifyFormWrap');
-            const $success = $('#notifySuccess');
 
             $.ajax({
                 url: url,
@@ -678,8 +744,8 @@
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
-                        $success.addClass('d-none');
-                        $wrap.removeClass('d-none');
+                        $('#notifySuccess').addClass('d-none');
+                        $('#notifyCollapsed').removeClass('d-none');
                         $('#notifyBtn').prop('disabled', false).html('<i class="bi bi-bell me-1"></i> Subscribe');
                         showToast(response.message || 'Unsubscribed successfully.', 'success');
                     }

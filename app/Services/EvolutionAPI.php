@@ -69,8 +69,8 @@ class EvolutionAPI
         $result = [
             'success' => $httpCode >= 200 && $httpCode < 300,
             'http_code' => $httpCode,
-            'data' => json_decode($response, true),
-            'raw' => $response,
+            'data' => $response ? json_decode($response, true) : null,
+            'raw' => $response ?: '',
             'error' => $error ?: null,
             'duration_ms' => $duration,
         ];
@@ -93,6 +93,8 @@ class EvolutionAPI
     {
         try {
             $db = \App\Core\Database::getInstance();
+            // Truncate response body to prevent DB errors with large payloads
+            $responseBody = mb_substr($result['raw'] ?? '', 0, 10000);
             $db->query(
                 "INSERT INTO whatsapp_logs (instance, endpoint, method, request_headers, request_body, response_body, response_code, duration_ms, status, error_message, created_at)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())",
@@ -101,8 +103,8 @@ class EvolutionAPI
                     $endpoint,
                     $method,
                     json_encode(['Content-Type' => 'application/json', 'apikey' => '***']),
-                    json_encode($request),
-                    $result['raw'],
+                    mb_substr(json_encode($request), 0, 10000),
+                    $responseBody,
                     $result['http_code'],
                     $result['duration_ms'],
                     $result['success'] ? 'success' : 'error',
@@ -452,7 +454,7 @@ class EvolutionAPI
      */
     public function removeParticipants(string $instance, string $groupId, array $participants): array
     {
-        return $this->request('DELETE', "/group/participants/remove/{$instance}", [
+        return $this->request('POST', "/group/participants/remove/{$instance}", [
             'groupJid' => $groupId,
             'participants' => $participants,
         ]);

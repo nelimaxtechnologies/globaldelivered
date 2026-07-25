@@ -259,7 +259,7 @@
                 <div class="col-lg-3 col-md-6">
                     <h5>Contact Info</h5>
                     <div class="footer-contact">
-                        <p><i class="bi bi-geo-alt"></i> Westlands Business Park, Block C<br>Waiyaki Way, Nairobi, Kenya</p>
+                        <p><i class="bi bi-geo-alt"></i> Westlands Business Park, Block C, Waiyaki Way<br>Nairobi, Kenya</p>
                         <p><i class="bi bi-telephone"></i> +254729373801</p>
                         <p><i class="bi bi-envelope"></i> track@globaldelivered.biz</p>
                         <p><i class="bi bi-clock"></i> 24/7 - 365 Days</p>

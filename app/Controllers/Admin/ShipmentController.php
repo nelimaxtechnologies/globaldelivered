@@ -298,7 +298,7 @@ class ShipmentController extends Controller
             "UPDATE shipments SET 
                 current_status_id = ?,
                 service_type = ?, package_type = ?,
-                sender_name = ?, sender_phone = ?, sender_address = ?,
+                sender_name = ?, sender_phone = ?, sender_address = ?, sender_city = ?, sender_state = ?, sender_country = ?, sender_postal_code = ?,
                 recipient_name = ?, recipient_phone = ?, recipient_address = ?,
                 recipient_city = ?, recipient_state = ?, recipient_country = ?, recipient_postal_code = ?,
                 weight = ?, length = ?, width = ?, height = ?,
@@ -313,6 +313,7 @@ class ShipmentController extends Controller
                 $data['current_status_id'],
                 $data['service_type'] ?? 'express', $data['package_type'] ?? 'parcel',
                 $data['sender_name'] ?? '', $data['sender_phone'] ?? '', $data['sender_address'] ?? '',
+                $data['sender_city'] ?? '', $data['sender_state'] ?? '', $data['sender_country'] ?? '', $data['sender_postal_code'] ?? '',
                 $data['recipient_name'], $data['recipient_phone'], $data['recipient_address'],
                 $data['recipient_city'], $data['recipient_state'] ?? '', $data['recipient_country'], $data['recipient_postal_code'] ?? '',
                 $data['weight'], $data['length'] ?? 0, $data['width'] ?? 0, $data['height'] ?? 0,

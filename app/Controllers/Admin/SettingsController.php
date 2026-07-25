@@ -348,4 +348,97 @@ class SettingsController extends Controller
         flash($results['failed'] > 0 ? 'error' : 'success', $msg);
         $this->back();
     }
+
+    /**
+     * List all contact form submissions
+     */
+    public function contacts(): void
+    {
+        $page = (int) ($_GET['page'] ?? 1);
+        $status = sanitize($_GET['status'] ?? '');
+        $search = sanitize($_GET['search'] ?? '');
+
+        $where = "WHERE 1=1";
+        $params = [];
+
+        if (!empty($status)) {
+            $where .= " AND cs.status = ?";
+            $params[] = $status;
+        }
+        if (!empty($search)) {
+            $where .= " AND (cs.name LIKE ? OR cs.email LIKE ? OR cs.subject LIKE ? OR cs.message LIKE ?)";
+            $term = "%{$search}%";
+            $params = array_merge($params, [$term, $term, $term, $term]);
+        }
+
+        $countSql = "SELECT COUNT(*) FROM contact_submissions cs {$where}";
+        $dataSql = "SELECT cs.* FROM contact_submissions cs {$where} ORDER BY cs.created_at DESC";
+        $paginated = $this->db->paginate($countSql, $dataSql, $params, $page, 25);
+
+        $stats = $this->db->fetch(
+            "SELECT 
+                COUNT(*) as total,
+                SUM(CASE WHEN status = 'new' THEN 1 ELSE 0 END) as new_count,
+                SUM(CASE WHEN status = 'read' THEN 1 ELSE 0 END) as `read`,
+                SUM(CASE WHEN status = 'replied' THEN 1 ELSE 0 END) as replied,
+                SUM(CASE WHEN status = 'archived' THEN 1 ELSE 0 END) as archived
+             FROM contact_submissions"
+        );
+
+        $this->adminView('settings/contacts', [
+            'pageTitle' => 'Contact Submissions',
+            'submissions' => $paginated->data,
+            'pagination' => $paginated,
+            'stats' => $stats,
+            'filters' => ['status' => $status, 'search' => $search],
+        ]);
+    }
+
+    /**
+     * Show single contact submission
+     */
+    public function showContact(int $id): void
+    {
+        $submission = $this->db->fetch(
+            "SELECT * FROM contact_submissions WHERE id = ?", [$id]
+        );
+
+        if (!$submission) {
+            flash('error', 'Submission not found.');
+            $this->redirect('/admin/contacts');
+        }
+
+        // Mark as read
+        if ($submission->status === 'new') {
+            $this->db->query(
+                "UPDATE contact_submissions SET status = 'read' WHERE id = ? AND status = 'new'",
+                [$id]
+            );
+        }
+
+        $this->adminView('settings/contact_show', [
+            'pageTitle' => 'Contact: ' . htmlspecialchars($submission->subject),
+            'submission' => $submission,
+        ]);
+    }
+
+    /**
+     * Update contact submission status (AJAX)
+     */
+    public function updateContactStatus(int $id): void
+    {
+        $status = sanitize($_POST['status'] ?? '');
+        $validStatuses = ['new', 'read', 'replied', 'archived'];
+
+        if (!in_array($status, $validStatuses)) {
+            $this->error('Invalid status.');
+        }
+
+        $this->db->query(
+            "UPDATE contact_submissions SET status = ?, updated_at = NOW() WHERE id = ?",
+            [$status, $id]
+        );
+
+        $this->success([], 'Status updated.');
+    }
 }

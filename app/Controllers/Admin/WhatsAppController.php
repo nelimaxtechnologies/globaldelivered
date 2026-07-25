@@ -263,7 +263,8 @@ class WhatsAppController extends Controller
     public function messages(): void
     {
         $phone = sanitize($_GET['phone'] ?? '');
-        $instance = sanitize($_GET['instance'] ?? $this->model->getSettings()->default_instance ?? '');
+        $settings = $this->model->getSettings();
+        $instance = sanitize($_GET['instance'] ?? $settings->default_instance ?? '');
 
         $conversations = $this->model->getConversations($instance);
         $chatMessages = [];
@@ -290,7 +291,7 @@ class WhatsAppController extends Controller
         $data = $this->getPostData();
         $phone = \App\Services\EvolutionAPI::formatPhone($data['phone'] ?? '');
         $message = $data['message'] ?? '';
-        $instance = $data['instance'] ?? $this->model->getSettings()->default_instance ?? '';
+        $instance = $data['instance'] ?? ($this->model->getSettings()->default_instance ?? '');
         $messageType = $data['message_type'] ?? 'text';
 
         if (empty($phone) || empty($message)) {
@@ -300,8 +301,8 @@ class WhatsAppController extends Controller
         }
 
         try {
-            $jid = $phone . '@s.whatsapp.net';
-            $result = $this->api->sendText($instance, $jid, $message);
+            // Evolution API expects phone number (with country code), NOT JID format
+            $result = $this->api->sendText($instance, $phone, $message);
 
             $this->model->saveMessage([
                 'instance' => $instance,
@@ -333,7 +334,7 @@ class WhatsAppController extends Controller
     public function sendMedia(): void
     {
         $phone = \App\Services\EvolutionAPI::formatPhone($_POST['phone'] ?? '');
-        $instance = $_POST['instance'] ?? $this->model->getSettings()->default_instance ?? '';
+        $instance = $_POST['instance'] ?? ($this->model->getSettings()->default_instance ?? '');
         $caption = $_POST['caption'] ?? '';
         $messageType = $_POST['message_type'] ?? 'image';
 
@@ -343,7 +344,6 @@ class WhatsAppController extends Controller
         }
 
         try {
-            // Save uploaded file temporarily
             $tmpFile = $_FILES['media']['tmp_name'];
             $fileName = $_FILES['media']['name'];
             $mimeType = $_FILES['media']['type'];
@@ -352,23 +352,22 @@ class WhatsAppController extends Controller
             $fileContent = file_get_contents($tmpFile);
             $base64 = 'data:' . $mimeType . ';base64,' . base64_encode($fileContent);
 
-            $jid = $phone . '@s.whatsapp.net';
-
+            // Evolution API expects phone number, NOT JID format
             switch ($messageType) {
                 case 'image':
-                    $result = $this->api->sendImage($instance, $jid, $base64, $caption);
+                    $result = $this->api->sendImage($instance, $phone, $base64, $caption);
                     break;
                 case 'video':
-                    $result = $this->api->sendVideo($instance, $jid, $base64, $caption);
+                    $result = $this->api->sendVideo($instance, $phone, $base64, $caption);
                     break;
                 case 'document':
-                    $result = $this->api->sendDocument($instance, $jid, $base64, $fileName, $caption);
+                    $result = $this->api->sendDocument($instance, $phone, $base64, $fileName, $caption);
                     break;
                 case 'audio':
-                    $result = $this->api->sendAudio($instance, $jid, $base64);
+                    $result = $this->api->sendAudio($instance, $phone, $base64);
                     break;
                 default:
-                    $result = $this->api->sendImage($instance, $jid, $base64, $caption);
+                    $result = $this->api->sendImage($instance, $phone, $base64, $caption);
             }
 
             $this->model->saveMessage([
@@ -501,14 +500,14 @@ class WhatsAppController extends Controller
 
             try {
                 $phone = \App\Services\EvolutionAPI::formatPhone($contact->phone);
-                $jid = $phone . '@s.whatsapp.net';
-                $instance = $campaign->instance ?: $this->model->getSettings()->default_instance;
+                $instance = $campaign->instance ?: ($this->model->getSettings()->default_instance ?? '');
 
                 $message = $campaign->template_message;
                 $vars = ['customer' => $contact->name, 'phone' => $phone];
                 $message = $this->model->renderTemplate($message, $vars);
 
-                $result = $this->api->sendText($instance, $jid, $message);
+                // Evolution API expects phone number, NOT JID format
+                $result = $this->api->sendText($instance, $phone, $message);
 
                 $this->model->updateCampaignContactStatus($campaignId, $contact->contact_id, 'sent', $result['data']['key']['id'] ?? '');
                 $this->model->incrementTemplateUsage($campaign->template_id);
@@ -571,8 +570,8 @@ class WhatsAppController extends Controller
                 $phone = \App\Services\EvolutionAPI::formatPhone($data['phone'] ?? '');
                 if (empty($phone)) continue;
 
-                $jid = $phone . '@s.whatsapp.net';
-                $result = $this->api->sendText($instance, $jid, $message);
+                // Evolution API expects phone number, NOT JID format
+                $result = $this->api->sendText($instance, $phone, $message);
 
                 $this->model->saveMessage([
                     'instance' => $instance,
