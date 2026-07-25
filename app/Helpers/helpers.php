@@ -300,3 +300,66 @@ if (!function_exists('log_activity')) {
         }
     }
 }
+
+// ==================== WhatsApp / Environment Helpers ====================
+
+if (!function_exists('is_local')) {
+    /**
+     * Detect if running on localhost/development
+     */
+    function is_local(): bool
+    {
+        $host = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? '';
+        $env = env('APP_ENV', 'production');
+
+        return in_array($env, ['development', 'local', 'dev'])
+            || str_contains($host, 'localhost')
+            || str_contains($host, '127.0.0.1')
+            || str_contains($host, '.local');
+    }
+}
+
+if (!function_exists('get_webhook_base_url')) {
+    /**
+     * Get the base URL for webhooks based on environment.
+     * - Localhost: uses ngrok URL so Evolution API can reach us
+     * - Production: uses the production domain
+     */
+    function get_webhook_base_url(): string
+    {
+        if (is_local()) {
+            $ngrokUrl = env('NGROK_URL', '');
+            if (!empty($ngrokUrl)) {
+                return rtrim($ngrokUrl, '/');
+            }
+        }
+
+        $prodUrl = env('PRODUCTION_URL', '');
+        if (!empty($prodUrl)) {
+            return rtrim($prodUrl, '/');
+        }
+
+        // Fallback to BASE_URL
+        return defined('BASE_URL') ? BASE_URL : '';
+    }
+}
+
+if (!function_exists('get_webhook_url')) {
+    /**
+     * Get the full webhook endpoint URL for Evolution API
+     */
+    function get_webhook_url(): string
+    {
+        return get_webhook_base_url() . '/api/webhooks/evolution';
+    }
+}
+
+if (!function_exists('get_evolution_api_url')) {
+    /**
+     * Get the Evolution API server URL
+     */
+    function get_evolution_api_url(): string
+    {
+        return env('EVOLUTION_API_URL', '');
+    }
+}

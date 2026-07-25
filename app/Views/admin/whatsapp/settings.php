@@ -45,20 +45,52 @@
                     <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#0d6efd,#0a58ca);display:flex;align-items:center;justify-content:center;color:#fff;"><i class="bi bi-arrow-repeat"></i></div>
                     <h6 class="fw-bold mb-0">Webhook Configuration</h6>
                 </div>
+
+                <!-- Environment Detection -->
+                <div class="alert <?= is_local() ? 'alert-warning' : 'alert-success' ?> d-flex align-items-center mb-3" style="border-radius:10px;">
+                    <i class="bi <?= is_local() ? 'bi-laptop' : 'bi-cloud' ?> me-2 fs-5"></i>
+                    <div>
+                        <strong><?= $envLabel ?></strong> environment detected
+                        <?php if (is_local()): ?>
+                        — Using ngrok for webhook callbacks
+                        <?php else: ?>
+                        — Using production domain
+                        <?php endif; ?>
+                    </div>
+                </div>
+
                 <div class="row g-3">
                     <div class="col-md-8">
                         <label class="form-label fw-semibold">Webhook URL</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-globe"></i></span>
-                            <input type="url" name="webhook_url" class="form-control" value="<?= htmlspecialchars($settings->webhook_url ?? '') ?>" placeholder="<?= BASE_URL ?>/api/webhooks/evolution">
+                            <input type="url" name="webhook_url" class="form-control" value="<?= htmlspecialchars($autoWebhookUrl ?: ($settings->webhook_url ?? '')) ?>" readonly style="background:#f8f9fa;">
+                            <button type="button" class="btn btn-outline-secondary" onclick="navigator.clipboard.writeText(this.previousElementSibling.value);this.innerHTML='<i class=\'bi bi-check\'></i>';setTimeout(()=>this.innerHTML='<i class=\'bi bi-clipboard\'></i>',2000)" title="Copy"><i class="bi bi-clipboard"></i></button>
                         </div>
-                        <small class="text-muted">URL where Evolution API will send events</small>
+                        <small class="text-muted">
+                            Auto-detected from environment:
+                            <?php if (is_local()): ?>
+                                <code>NGROK_URL</code> + <code>/api/webhooks/evolution</code>
+                            <?php else: ?>
+                                <code>PRODUCTION_URL</code> + <code>/api/webhooks/evolution</code>
+                            <?php endif; ?>
+                        </small>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-semibold">Webhook Secret</label>
                         <input type="text" name="webhook_secret" class="form-control" value="<?= htmlspecialchars($settings->webhook_secret ?? '') ?>" placeholder="Optional secret key">
                     </div>
                 </div>
+
+                <?php if (is_local() && empty(env('NGROK_URL', ''))): ?>
+                <div class="alert alert-danger mt-3 mb-0 d-flex align-items-center" style="border-radius:10px;">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <div>
+                        <strong>ngrok URL not configured!</strong> Set <code>NGROK_URL</code> in your <code>.env</code> file.
+                        <br><small>Run <code>ngrok http 80</code> to get your ngrok URL, then add it to <code>.env</code> as <code>NGROK_URL=https://your-ngrok-url.ngrok-free.dev</code></small>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
 
             <!-- Options -->

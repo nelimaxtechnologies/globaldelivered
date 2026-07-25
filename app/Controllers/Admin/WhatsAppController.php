@@ -619,9 +619,16 @@ class WhatsAppController extends Controller
     public function settings(): void
     {
         $settings = $this->model->getSettings();
+
+        // Auto-detect and show current webhook URL
+        $autoWebhookUrl = function_exists('get_webhook_url') ? get_webhook_url() : '';
+        $envLabel = is_local() ? 'Development (ngrok)' : 'Production';
+
         $this->adminView('whatsapp/settings', [
             'pageTitle' => 'WhatsApp Settings',
             'settings' => $settings,
+            'autoWebhookUrl' => $autoWebhookUrl,
+            'envLabel' => $envLabel,
         ]);
     }
 

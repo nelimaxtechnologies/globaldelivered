@@ -14,6 +14,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h6 class="fw-bold"><i class="bi bi-qr-code me-2"></i>Scan QR Code</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center">
                 <p class="text-muted small">Open WhatsApp on your phone → Settings → Linked Devices → Link a Device</p>

@@ -19,7 +19,7 @@
             <div class="list-group list-group-flush">
                 <?php if (!empty($conversations)): ?>
                     <?php foreach ($conversations as $conv): ?>
-                    <a href="<?= BASE_URL ?>/admin/whatsapp/chats?phone=<?= urlencode($conv->phone) ?>&instance=<?= urlencode($conv->instance) ?>" class="list-group-item list-group-item-action <?= $selectedPhone === $conv->phone ? 'active' : '' ?>" style="border-left: 3px solid <?= $selectedPhone === $conv->phone ? '#25D366' : 'transparent' ?>;">
+                    <a href="<?= BASE_URL ?>/admin/whatsapp/chats?phone=<?= urlencode($conv->phone) ?>&instance=<?= urlencode($conv->instance) ?>" class="list-group-item list-group-item-action <?= ($selectedPhone !== '' && $selectedPhone === $conv->phone) ? 'active' : '' ?>" style="border-left: 3px solid <?= ($selectedPhone !== '' && $selectedPhone === $conv->phone) ? '#25D366' : 'transparent' ?>;">
                         <div class="d-flex align-items-center gap-2">
                             <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;font-weight:600;font-size:0.75rem;">
                                 <?= strtoupper(substr($conv->contact_name ?: $conv->phone, 0, 2)) ?>

@@ -123,6 +123,9 @@ class EvolutionAPI
      */
     public function createInstance(string $instanceName, string $number = '', string $qrcode = 'true', string $integration = 'WHATSAPP-BAILEYS'): array
     {
+        // Auto-detect webhook URL based on environment
+        $webhookUrl = function_exists('get_webhook_url') ? get_webhook_url() : $this->getWebhookUrl();
+
         return $this->request('POST', '/instance/create', [
             'instanceName' => $instanceName,
             'number' => $number,
@@ -133,7 +136,7 @@ class EvolutionAPI
             'always_online' => false,
             'webhook' => [
                 'enabled' => true,
-                'url' => $this->getWebhookUrl(),
+                'url' => $webhookUrl,
                 'by_events' => false,
                 'base64' => false,
                 'events' => [
@@ -463,10 +466,17 @@ class EvolutionAPI
     // ==================== Helpers ====================
 
     /**
-     * Get webhook URL from settings
+     * Get webhook URL from settings (auto-detects environment)
      */
     private function getWebhookUrl(): string
     {
+        // Auto-detect: use ngrok on localhost, production URL on production
+        $autoUrl = function_exists('get_webhook_url') ? get_webhook_url() : '';
+        if (!empty($autoUrl)) {
+            return $autoUrl;
+        }
+
+        // Fallback to saved settings
         try {
             $db = \App\Core\Database::getInstance();
             $settings = $db->fetch("SELECT webhook_url FROM whatsapp_settings LIMIT 1");

@@ -72,7 +72,7 @@ class WhatsAppModel
 
     public function updateInstanceStatus(string $name, string $status): void
     {
-        $this->db->query("UPDATE whatsapp_instances SET status=?, updated_at=NOW() WHERE instance_name=?", [$status, $name]);
+        $this->db->query("UPDATE whatsapp_instances SET status=?, last_seen=NOW(), updated_at=NOW() WHERE instance_name=?", [$status, $name]);
     }
 
     public function updateInstanceQR(string $name, ?string $qrcode): void

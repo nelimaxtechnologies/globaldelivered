@@ -438,7 +438,7 @@ class ApiController extends Controller
         $dbStatus = $statusMap[$state] ?? 'disconnected';
 
         $this->db->query(
-            "UPDATE whatsapp_instances SET status = ? WHERE instance_name = ?",
+            "UPDATE whatsapp_instances SET status = ?, updated_at = NOW(), last_seen = NOW() WHERE instance_name = ?",
             [$dbStatus, $instance]
         );
 

@@ -20,31 +20,31 @@
     </div>
     <div class="col-xl-2 col-md-4 col-6">
         <div class="admin-card mini-stat text-center py-3">
-            <div class="fw-bold fs-4 text-primary"><?= number_format($stats->today ?? 0) ?></div>
+            <div class="fw-bold fs-4 text-primary"><?= number_format($stats['today'] ?? 0) ?></div>
             <small class="text-muted">Today</small>
         </div>
     </div>
     <div class="col-xl-2 col-md-4 col-6">
         <div class="admin-card mini-stat text-center py-3" style="border-top:3px solid #198754;">
-            <div class="fw-bold fs-4 text-success"><?= number_format($stats->sent ?? 0) ?></div>
+            <div class="fw-bold fs-4 text-success"><?= number_format($stats['sent'] ?? 0) ?></div>
             <small class="text-muted">Sent</small>
         </div>
     </div>
     <div class="col-xl-2 col-md-4 col-6">
         <div class="admin-card mini-stat text-center py-3" style="border-top:3px solid #0d6efd;">
-            <div class="fw-bold fs-4 text-info"><?= number_format($stats->received ?? 0) ?></div>
+            <div class="fw-bold fs-4 text-info"><?= number_format($stats['received'] ?? 0) ?></div>
             <small class="text-muted">Received</small>
         </div>
     </div>
     <div class="col-xl-2 col-md-4 col-6">
         <div class="admin-card mini-stat text-center py-3" style="border-top:3px solid #ffc107;">
-            <div class="fw-bold fs-4 text-warning"><?= number_format($stats->pending ?? 0) ?></div>
+            <div class="fw-bold fs-4 text-warning"><?= number_format($stats['pending'] ?? 0) ?></div>
             <small class="text-muted">Pending</small>
         </div>
     </div>
     <div class="col-xl-2 col-md-4 col-6">
         <div class="admin-card mini-stat text-center py-3" style="border-top:3px solid #dc3545;">
-            <div class="fw-bold fs-4 text-danger"><?= number_format($stats->failed ?? 0) ?></div>
+            <div class="fw-bold fs-4 text-danger"><?= number_format($stats['failed'] ?? 0) ?></div>
             <small class="text-muted">Failed</small>
         </div>
     </div>
